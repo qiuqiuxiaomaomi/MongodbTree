@@ -1,10 +1,14 @@
 # MongodbTree
-Mongo/Couchbase 文档存储数据库
+Mongo 文档存储数据库
+
+![](https://i.imgur.com/fXnMvOA.png)
 
 <pre>
 Mongodb技术
 1）数据类型
+   mongo的文档格式 BSON, 二进制的JSON
 2）_id, ObjectId
+   
 3) 索引
      1）唯一索引
      2）稀疏索引
