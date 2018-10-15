@@ -37,5 +37,11 @@ Mongodb技术
 </pre>
 
 <pre>
+couchbase
+    CouchDB和MemBase的合并，MemBase是基于Memcached的，因此couchbase结合了couchbase的简单可靠和memcached的高性能，以及membase的可扩展性
+    1)
+</pre>
+
+<pre>
 SequoiaDB技术
 </pre>
