@@ -37,9 +37,5 @@ Mongodb技术
 </pre>
 
 <pre>
-Couchbase技术
-</pre>
-
-<pre>
 SequoiaDB技术
 </pre>
