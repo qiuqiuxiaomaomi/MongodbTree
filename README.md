@@ -144,12 +144,12 @@ Mongodb技术
      6）分片
         1）分片概念
            mongodb分片是指将数据拆分，将其分散在不同机器的过程,mongodb支持自动分片,应用程序直接连接到路由服务器就可以像单台服务器一样使用
-           
+
+        2）配置分片
            cluster = new ShardingTest({"shards":3, "chunksize":1})
            对数据库分片 enableSharding("bonaparte"),
            对集合分片 shardingCollection("ponaparte.collection1", {"username":1})
 
-        2）配置分片
         3）追踪集群数据
 
      7）选择片键
