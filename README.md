@@ -344,3 +344,72 @@ SequoiaDB对比与其他的NoSQL有更多的方式将数据分布到多台服务
 
        在真实的客户环境中，多维分区主要使用的场景为：银行的历史数据流水，业务系统历史日志表等。
 </pre>
+
+<pre>
+检查写入是否出错
+	WriteResult ret = db.update({"name":"lily"},{"$set":{"age":20}});
+	if(ret.getLastError() == null)
+	    return true;
+	else
+	    return false;
+	
+	此时，getLastError()会查询上次操作结果是否出现错误。
+</pre>
+
+###非应答式写入
+
+             db.blogs.insert({ename:"leshami",url:"http://blog.csdn.net/leshami"},{writeConcern:{w:0}})
+
+![](https://i.imgur.com/gzxRqkM.png)
+
+###应答式写入
+ 应答式写入是默认值
+             db.blogs.insert({ename:"john",url:"http://blog.csdn.net/john"},{writeConcern:{w:1}})
+
+![](https://i.imgur.com/G5gJYEs.png)
+
+###带journal应答式写入
+
+![](https://i.imgur.com/TCIBg57.png)
+
+###副本集应答写入
+
+            对于使用副本集的场景，缺省情况下仅仅从主(首选)节点进行应答
+		    建议修改缺省的应答情形为特定数目或者majority来保证数据的可靠
+		    如下示例，w值为2，超时为5s
+		            db.products.insert(
+		               { item: "envelopes", qty : 100, type: "Clasp" },
+		               { writeConcern: { w: 2, wtimeout: 5000 } }
+		            )       
+		    如果不希望每次在增删改时添加writeConcern，可以通过设置settings.getLastErrorDefaults
+		    如下示例，
+		            cfg = rs.conf()
+		            cfg.settings = {}
+		            cfg.settings.getLastErrorDefaults = { w: "majority", wtimeout: 5000 }
+		            rs.reconfig(cfg)
+
+![](https://i.imgur.com/uSLY9dF.png)
+
+<pre>
+MongDB写安全
+
+      MongoDB Write Concern，简称MongoDB写入安全机制，是一种客户端设置，用于控制写
+      入安全的级别。Write Concern 描述了MongoDB写入到mongod单实例，副本集，以及分片
+      集群时何时应答给客户端。默认情况下，mongoDB文档增删改都会一直等待数据库响应
+      (确认写入是否成功)，然后才会继续执行。本文讲述了MongoDB 应答机制及相关参数。
+
+      MongoDB应答机制：
+              MongoDB应答机制就是说对于当前数据库的写入成功与否告知客户端(db.getLastError()）。
+               如下：
+                   mongoDB client发出写入(或更新)请求---->mongoDB Server端写入---->通知客户端已经写入OK
+               主要分为2种应答机制
+                    1）应答式写入(缺省情形，安全写入，适用于数据强一致性场景)
+                    2）非应答式写入(非安全写入，适用于数据弱一致性场景)
+               实现方式
+                    1）通过Write Concern来实现，客户端驱动调用db.getLastError()方法，错误返回给客户端
+                    2）如果捕获到错误，则可以通过客户端定义的逻辑尝试再次写入或记录到特定日志等
+</pre>
+
+<pre>
+MongDB journal技术研究
+</pre>
