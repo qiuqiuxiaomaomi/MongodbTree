@@ -412,4 +412,44 @@ MongDB写安全
 
 <pre>
 MongDB journal技术研究
+
+      如果不配置journal，写入wiredtiger的数据，并不会立即持久化存储，而是每分钟会做一次全量的checkpoint，将
+      所有的数据持久化，如果中间出现宕机，那么数据只能恢复到最近的一次checkpoint，这样最多可能丢失1分钟的数据。
+
+      开启journal后，每次写入记录一条操作日志（通过journal可以重新构造写入的数据）。这样，即使出现宕机，启动时
+      wiredtiger会先将数据恢复到最近的一次checkpoint,然后重放后续的journal操作日志来恢复。
+
+      MongoDB 里的 journal 行为 主要由2个参数控制，storage.journal.enabled 决定是否开启
+      journal，storage.journal.commitInternalMs 决定 journal 刷盘的间隔，默认为100ms，用户
+      也可以通过写入时指定 writeConcern 为 {j: ture} 来每次写入时都确保 journal 刷盘
+</pre>
+
+<pre>
+MongoDB oplog
+
+      oplog是MongoDB主从复制层面的一个概念，通过oplog来实现复制集节点间的数据同步，客户端将数据写入到primary
+      ,primary写入数据后会记录一条oplog， secondary从primary或者其他secondry拉取oplog并重放，来确保复制集
+      里每个节点存储相同的数据。
+</pre>
+
+![](https://i.imgur.com/ag6POkI.png)
+
+![](https://i.imgur.com/bnfYzGI.png)
+
+wiredtiger 提交事务时，会将所有修改操作应用，并将上述3个操作写入到一条 journal 操作日志里；
+后台会周期性的checkpoint，将修改持久化，并移除无用的journal。
+
+<pre>
+MongoDB的一次性写入：
+ 
+      MongoDB 复制集里写入一个文档时，需要修改如下数据
+
+         1）将文档数据写入对应的集合
+         2）更新集合的所有索引信息
+         3）写入一条oplog用于同步
+      上面3个修改操作，需要确保要么都成功，要么都失败，不能出现部分成功的情况，否则
+
+      如果数据写入成功，但索引写入失败，那么会出现某个数据，通过全表扫描能读取到，但通过索引就无法读取
+      如果数据、索引都写入成功，但 oplog 写入不成功，那么写入操作就不能正常的同步到备节点，出现主备数据不
+      一致的情况。MongoDB 在写入数据时，会将上述3个操作放到一个 wiredtiger 的事务里，确保「原子性」。
 </pre>
